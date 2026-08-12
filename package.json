@@ -1,0 +1,28 @@
+{
+  "name": "fertilizer-delivery",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "node scripts/vue-tsc.cjs -b && vite build",
+    "type-check": "node scripts/vue-tsc.cjs -b",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@googlemaps/js-api-loader": "^2.1.1",
+    "papaparse": "^5.5.4",
+    "vue": "^3.5.40"
+  },
+  "devDependencies": {
+    "@types/google.maps": "^3.65.5",
+    "@types/node": "^24.13.3",
+    "@types/papaparse": "^5.5.2",
+    "@vitejs/plugin-vue": "^6.0.8",
+    "@vue/tsconfig": "^0.9.1",
+    "typescript": "~7.0.2",
+    "typescript6": "npm:@typescript/typescript6@^6.0.2",
+    "vite": "^8.2.0",
+    "vue-tsc": "^3.3.8"
+  }
+}
