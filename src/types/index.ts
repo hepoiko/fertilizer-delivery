@@ -11,6 +11,8 @@ export interface Delivery {
   id: string
   /** Full original CSV row keyed by header name */
   row: Record<string, string>
+  /** Optional external reference ID, used to update existing deliveries on re-import */
+  reference?: string
   /** Normalized address used for geocoding */
   address: string
   /** Human-friendly label (customer name when available, otherwise the address) */

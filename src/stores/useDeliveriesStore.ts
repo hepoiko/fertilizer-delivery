@@ -40,6 +40,45 @@ export function useDeliveriesStore() {
     persist()
   }
 
+  /** Update existing deliveries by reference; unmatched items are appended. Returns added/updated counts. */
+  function mergeByReference(items: Delivery[]): { added: number; updated: number } {
+    let updated = 0
+    const byRef = new Map<string, Delivery>()
+    for (const d of state.deliveries) {
+      if (d.reference) byRef.set(normalizeKey(d.reference), d)
+    }
+
+    const added: Delivery[] = []
+    for (const item of items) {
+      const ref = item.reference
+      if (!ref) {
+        added.push(item)
+        continue
+      }
+      const existing = byRef.get(normalizeKey(ref))
+      if (!existing) {
+        byRef.set(normalizeKey(ref), item)
+        added.push(item)
+        continue
+      }
+      existing.reference = ref
+      existing.row = item.row
+      existing.label = item.label
+      if (existing.address !== item.address) {
+        existing.address = item.address
+        existing.geocodeState = 'pending'
+        existing.lat = null
+        existing.lng = null
+        existing.geocodeError = undefined
+      }
+      updated++
+    }
+
+    state.deliveries.push(...added)
+    persist()
+    return { added: added.length, updated }
+  }
+
   function setStatus(id: string, status: DeliveryStatus): void {
     const d = state.deliveries.find((x) => x.id === id)
     if (d) {
@@ -144,6 +183,7 @@ export function useDeliveriesStore() {
     stats,
     replaceAll,
     append,
+    mergeByReference,
     setStatus,
     clearAll,
     resetGeocodeState,

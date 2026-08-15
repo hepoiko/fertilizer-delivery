@@ -6,12 +6,14 @@ export interface ParsedRow {
   row: Record<string, string>
   address: string
   label: string
+  reference: string | null
 }
 
 export interface CsvParseResult {
   headers: string[]
   rows: ParsedRow[]
   addressColumn: string | null
+  referenceColumn: string | null
   dropped: number
   warnings: string[]
 }
@@ -43,6 +45,17 @@ const CUSTOMER_PATTERNS = [
 const CITY_PATTERNS = [/^city$/i, /^town$/i, /^municipality$/i]
 const STATE_PATTERNS = [/^(state|province|region)(\s*\/?\s*code)?$/i]
 const ZIP_PATTERNS = [/^(zip|postal)\s*(code)?$/i, /^pincode$/i, /^pin\b/i]
+
+const REFERENCE_PATTERNS = [
+  /^reference$/i,
+  /^ref\b/i,
+  /^external\s*id$/i,
+  /^reference\s*id$/i,
+  /^ref\s*id$/i,
+  /^order\s*id$/i,
+  /^id$/i,
+  /^code$/i,
+]
 
 const matchHeader = (header: string, patterns: RegExp[]): boolean =>
   patterns.some((p) => p.test(header.trim()))
@@ -100,6 +113,7 @@ export function parseCsvFile(text: string): CsvParseResult {
   }
 
   const customerColumn = headers.find((h) => matchHeader(h, CUSTOMER_PATTERNS)) ?? null
+  const referenceColumn = headers.find((h) => matchHeader(h, REFERENCE_PATTERNS)) ?? null
 
   const rows: ParsedRow[] = []
   let dropped = 0
@@ -117,7 +131,8 @@ export function parseCsvFile(text: string): CsvParseResult {
       continue
     }
     const label = customerColumn && row[customerColumn] ? row[customerColumn] : normalized
-    rows.push({ row, address: normalized, label })
+    const reference = referenceColumn && row[referenceColumn] ? row[referenceColumn] : null
+    rows.push({ row, address: normalized, label, reference })
   }
 
   if (dropped > 0) {
@@ -127,16 +142,17 @@ export function parseCsvFile(text: string): CsvParseResult {
     warnings.push('No columns detected — the file may be empty or not a CSV.')
   }
 
-  return { headers, rows, addressColumn, dropped, warnings }
+  return { headers, rows, addressColumn, referenceColumn, dropped, warnings }
 }
 
 /** Turn parsed rows into delivery records (with status pending + no coordinates). */
 export function rowsToDeliveries(rows: ParsedRow[]): Delivery[] {
-  return rows.map(({ row, address, label }) => ({
+  return rows.map(({ row, address, label, reference }) => ({
     id: uid(),
     row,
     address,
     label,
+    reference: reference ?? undefined,
     geocodeState: 'pending' as const,
     lat: null,
     lng: null,

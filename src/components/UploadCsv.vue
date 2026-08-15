@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import { parseCsvFile, rowsToDeliveries, type CsvParseResult } from '../services/csv'
 import { useDeliveriesStore } from '../stores/useDeliveriesStore'
 
-const { stats, replaceAll, append, geocodeAll } = useDeliveriesStore()
+const { stats, replaceAll, append, mergeByReference, geocodeAll } = useDeliveriesStore()
 
 const fileInput = ref<HTMLInputElement>()
 const dragging = ref(false)
@@ -11,6 +11,7 @@ const fileName = ref('')
 const parseResult = ref<CsvParseResult | null>(null)
 const error = ref('')
 const importing = ref(false)
+const mergeResult = ref('')
 
 const previewRows = computed(() => parseResult.value?.rows.slice(0, 10) ?? [])
 
@@ -18,6 +19,7 @@ function handleFile(file: File | undefined | null): void {
   if (!file) return
   error.value = ''
   fileName.value = file.name
+  mergeResult.value = ''
   const reader = new FileReader()
   reader.onload = () => {
     try {
@@ -50,6 +52,7 @@ async function runImport(mode: 'replace' | 'append'): Promise<void> {
     return
   }
   importing.value = true
+  mergeResult.value = ''
   const items = rowsToDeliveries(parseResult.value.rows)
   if (mode === 'replace') replaceAll(items)
   else append(items)
@@ -57,18 +60,29 @@ async function runImport(mode: 'replace' | 'append'): Promise<void> {
   importing.value = false
 }
 
+async function runMerge(): Promise<void> {
+  if (!parseResult.value) return
+  importing.value = true
+  mergeResult.value = ''
+  const items = rowsToDeliveries(parseResult.value.rows)
+  const { added, updated } = mergeByReference(items)
+  mergeResult.value = `Added ${added}, updated ${updated}.`
+  await geocodeAll()
+  importing.value = false
+}
+
 function downloadSample(): void {
   const rows = [
-    ['Green Acres Farm', '123 Main Street, Springfield, IL 62704'],
-    ['Sunrise Dairy', '456 Oak Avenue, Bloomington, IL 61701'],
-    ['Maple Hill Orchard', '789 Cedar Lane, Champaign, IL 61820'],
-    ['Riverbend Produce', '321 Willow Drive, Peoria, IL 61602'],
-    ['Golden Fields Grain', '654 Pine Road, Decatur, IL 62521'],
-    ['Cedar Creek Ranch', '987 Birch Boulevard, Normal, IL 61761'],
+    ['REF-001', 'Green Acres Farm', '123 Main Street, Springfield, IL 62704'],
+    ['REF-002', 'Sunrise Dairy', '456 Oak Avenue, Bloomington, IL 61701'],
+    ['REF-003', 'Maple Hill Orchard', '789 Cedar Lane, Champaign, IL 61820'],
+    ['REF-004', 'Riverbend Produce', '321 Willow Drive, Peoria, IL 61602'],
+    ['REF-005', 'Golden Fields Grain', '654 Pine Road, Decatur, IL 62521'],
+    ['REF-006', 'Cedar Creek Ranch', '987 Birch Boulevard, Normal, IL 61761'],
   ]
   const csv =
-    'Customer,Address\n' +
-    rows.map(([customer, address]) => `"${customer}","${address}"`).join('\n')
+    'Reference,Customer,Address\n' +
+    rows.map(([reference, customer, address]) => `"${reference}","${customer}","${address}"`).join('\n')
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -86,7 +100,9 @@ function downloadSample(): void {
       <p class="muted">
         Drop a <strong>.csv</strong> file with an address column (e.g. <code>address</code>,
         <code>street</code>, or separate <code>street</code> + <code>city</code> +
-        <code>zip</code> columns). A customer/name column is detected automatically too.
+        <code>zip</code> columns). A customer/name column is detected automatically too. An
+        optional <code>reference</code> / <code>ref</code> column lets a re-upload update
+        existing deliveries by that ID.
       </p>
 
       <div
@@ -124,6 +140,9 @@ function downloadSample(): void {
       <p class="muted">
         Detected address column:
         <code>{{ parseResult.addressColumn ?? 'combined (street/city/zip)' }}</code>
+        <template v-if="parseResult.referenceColumn">
+          · reference column: <code>{{ parseResult.referenceColumn }}</code>
+        </template>
       </p>
 
       <div v-for="(w, i) in parseResult.warnings" :key="i" class="warn" style="margin-top: 8px">
@@ -137,6 +156,7 @@ function downloadSample(): void {
               <th>#</th>
               <th>Customer</th>
               <th>Address</th>
+              <th v-if="parseResult.referenceColumn">Reference</th>
             </tr>
           </thead>
           <tbody>
@@ -144,6 +164,7 @@ function downloadSample(): void {
               <td>{{ i + 1 }}</td>
               <td class="label">{{ r.label }}</td>
               <td class="addr">{{ r.address }}</td>
+              <td v-if="parseResult.referenceColumn" class="ref">{{ r.reference }}</td>
             </tr>
           </tbody>
         </table>
@@ -156,7 +177,16 @@ function downloadSample(): void {
         <button class="btn" :disabled="importing || parseResult.rows.length === 0" @click="runImport('append')">
           Append to current
         </button>
+        <button
+          v-if="parseResult.referenceColumn"
+          class="btn"
+          :disabled="importing || parseResult.rows.length === 0"
+          @click="runMerge"
+        >
+          Update by reference
+        </button>
         <span v-if="importing" class="muted">Geocoding addresses…</span>
+        <span v-else-if="mergeResult" class="ok">{{ mergeResult }}</span>
       </div>
     </div>
   </div>

@@ -62,6 +62,7 @@ function distanceFor(lat: number | null, lng: number | null): number | null {
         <thead>
           <tr>
             <th>#</th>
+            <th>Ref</th>
             <th>Customer</th>
             <th>Address</th>
             <th>Status</th>
@@ -72,6 +73,7 @@ function distanceFor(lat: number | null, lng: number | null): number | null {
         <tbody>
           <tr v-for="(d, i) in filtered" :key="d.id">
             <td>{{ i + 1 }}</td>
+            <td class="ref">{{ d.reference ?? '—' }}</td>
             <td class="label">{{ d.label }}</td>
             <td class="addr">{{ d.address }}</td>
             <td>
@@ -104,7 +106,7 @@ function distanceFor(lat: number | null, lng: number | null): number | null {
             </td>
           </tr>
           <tr v-if="filtered.length === 0">
-            <td colspan="6" class="empty">No deliveries match.</td>
+            <td colspan="7" class="empty">No deliveries match.</td>
           </tr>
         </tbody>
       </table>
