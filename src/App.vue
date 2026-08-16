@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import DeliveryList from './components/DeliveryList.vue'
 import MapView from './components/MapView.vue'
 import SetupPanel from './components/SetupPanel.vue'
+import SharePanel from './components/SharePanel.vue'
 import UploadCsv from './components/UploadCsv.vue'
 import { useDeliveriesStore } from './stores/useDeliveriesStore'
 import { useSettingsStore } from './stores/useSettingsStore'
@@ -10,7 +11,7 @@ import { useSettingsStore } from './stores/useSettingsStore'
 const { effectiveApiKey } = useSettingsStore()
 const { stats, clearAll } = useDeliveriesStore()
 
-type Tab = 'map' | 'list' | 'upload' | 'settings'
+type Tab = 'map' | 'list' | 'upload' | 'share' | 'settings'
 const tab = ref<Tab>('map')
 const hasKey = computed(() => effectiveApiKey.value.length > 0)
 
@@ -39,6 +40,7 @@ function onClearAll(): void {
           List <span class="count">{{ stats.total }}</span>
         </button>
         <button :class="{ active: tab === 'upload' }" @click="tab = 'upload'">Upload</button>
+        <button :class="{ active: tab === 'share' }" @click="tab = 'share'">Share</button>
         <button :class="{ active: tab === 'settings' }" @click="tab = 'settings'">Settings</button>
       </nav>
 
@@ -53,6 +55,7 @@ function onClearAll(): void {
         <MapView v-show="tab === 'map'" />
         <DeliveryList v-if="tab === 'list'" />
         <UploadCsv v-if="tab === 'upload'" />
+        <SharePanel v-if="tab === 'share'" />
         <SetupPanel v-if="tab === 'settings'" />
       </template>
     </main>
