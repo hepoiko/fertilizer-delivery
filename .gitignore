@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Isolated worktrees + SDD scratch
+.worktrees
+.superpowers
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
