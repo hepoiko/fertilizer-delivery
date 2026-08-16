@@ -25,6 +25,7 @@ let onDataCb: ((raw: string) => void) | null = null
 let onCloseCb: (() => void) | null = null
 let onErrorCb: ((message: string) => void) | null = null
 let timeoutId: ReturnType<typeof setTimeout> | null = null
+let tearingDown = false
 
 function emit(state: ShareState): void {
   onStateCb(state)
@@ -36,12 +37,14 @@ function clearTimer(): void {
 }
 
 function teardown(): void {
+  tearingDown = true
   clearTimer()
   if (conn && conn.open) conn.close()
   conn = null
   if (peer && !peer.destroyed) peer.destroy()
   peer = null
   role = null
+  tearingDown = false
 }
 
 function friendlyError(err: Error & { type?: string }): string {
@@ -80,7 +83,7 @@ function wireConn(c: DataConnection): void {
   })
   c.on('close', () => {
     clearTimer()
-    onCloseCb?.()
+    if (!tearingDown) onCloseCb?.()
     teardown()
   })
   c.on('error', () => {
@@ -108,6 +111,7 @@ export function createShareSession(onState: StateCb): { code: string; cancel: ()
   })
   peer.on('connection', (c) => wireConn(c))
   peer.on('error', (err) => {
+    emit('error')
     onErrorCb?.(friendlyError(err))
     teardown()
   })
@@ -139,6 +143,7 @@ export function joinSession(joinCode: string, onState: StateCb): { cancel: () =>
     }, TIMEOUT_MS)
   })
   peer.on('error', (err) => {
+    emit('error')
     onErrorCb?.(friendlyError(err))
     teardown()
   })
