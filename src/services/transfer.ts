@@ -16,6 +16,7 @@ function isRecord(v: unknown): v is Record<string, unknown> {
 function isDelivery(v: unknown): v is Delivery {
   if (!isRecord(v)) return false
   if (typeof v.id !== 'string') return false
+  if (!isRecord(v.row)) return false
   if (typeof v.address !== 'string') return false
   if (typeof v.label !== 'string') return false
   if (typeof v.status !== 'string') return false

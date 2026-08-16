@@ -79,6 +79,17 @@ describe('parseSnapshot', () => {
     const bad = { version: 1, sentAt: 'x', settings, deliveries: [{ id: 'd1' }] }
     expect(() => transfer.parseSnapshot(JSON.stringify(bad))).toThrow()
   })
+
+  it('rejects deliveries missing the row field', async () => {
+    const { transfer } = await load()
+    const bad = {
+      version: 1,
+      sentAt: 'x',
+      settings,
+      deliveries: [{ id: 'd1', address: '123 Main St', label: 'Green Acres Farm', geocodeState: 'geocoded', status: 'pending', lat: null, lng: null }],
+    }
+    expect(() => transfer.parseSnapshot(JSON.stringify(bad))).toThrow()
+  })
 })
 
 describe('applySnapshot', () => {
