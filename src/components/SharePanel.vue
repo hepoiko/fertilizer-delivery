@@ -194,6 +194,7 @@ function maskKey(key: string): string {
 
         <template v-else-if="state === 'connecting' || state === 'connected'">
           <p class="muted">Waiting for sender…</p>
+          <p v-if="error" class="warn">{{ error }}</p>
           <div class="row">
             <button class="btn ghost" @click="reset">Cancel</button>
           </div>
