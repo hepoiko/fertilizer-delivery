@@ -13,6 +13,7 @@
   "dependencies": {
     "@googlemaps/js-api-loader": "^2.1.1",
     "papaparse": "^5.5.4",
+    "peerjs": "^1.5.5",
     "vue": "^3.5.40"
   },
   "devDependencies": {
