@@ -5,6 +5,7 @@ import MapView from './components/MapView.vue'
 import SetupPanel from './components/SetupPanel.vue'
 import SharePanel from './components/SharePanel.vue'
 import ProductCatalog from './components/ProductCatalog.vue'
+import NewOrder from './components/NewOrder.vue'
 import UploadCsv from './components/UploadCsv.vue'
 import { useDeliveriesStore } from './stores/useDeliveriesStore'
 import { useSettingsStore } from './stores/useSettingsStore'
@@ -40,6 +41,7 @@ function onClearAll(): void {
         <button :class="{ active: tab === 'list' }" @click="tab = 'list'">
           List <span class="count">{{ stats.total }}</span>
         </button>
+        <button :class="{ active: tab === 'new-order' }" @click="tab = 'new-order'">New Order</button>
         <button :class="{ active: tab === 'upload' }" @click="tab = 'upload'">Upload</button>
         <button :class="{ active: tab === 'products' }" @click="tab = 'products'">Products</button>
         <button :class="{ active: tab === 'share' }" @click="tab = 'share'">Share</button>
@@ -56,6 +58,7 @@ function onClearAll(): void {
       <template v-else>
         <MapView v-show="tab === 'map'" />
         <DeliveryList v-if="tab === 'list'" />
+        <NewOrder v-if="tab === 'new-order'" />
         <UploadCsv v-if="tab === 'upload'" />
         <ProductCatalog v-if="tab === 'products'" />
         <SharePanel v-if="tab === 'share'" />
