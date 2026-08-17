@@ -60,7 +60,7 @@ const REFERENCE_PATTERNS = [
 const matchHeader = (header: string, patterns: RegExp[]): boolean =>
   patterns.some((p) => p.test(header.trim()))
 
-const normalizeAddress = (raw: string): string =>
+export const normalizeAddress = (raw: string): string =>
   raw
     .trim()
     .replace(/\s+/g, ' ')

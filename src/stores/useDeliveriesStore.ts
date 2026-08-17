@@ -1,7 +1,9 @@
 import { computed, reactive } from 'vue'
+import { normalizeAddress } from '../services/csv'
 import { geocodeAddress } from '../services/geocoding'
 import { loadJSON, saveJSON, STORAGE_KEYS } from '../services/storage'
-import type { Delivery, DeliveryStatus } from '../types'
+import { uid } from '../utils/id'
+import type { Delivery, DeliveryStatus, OrderItem } from '../types'
 
 interface DeliveriesState {
   deliveries: Delivery[]
@@ -77,6 +79,25 @@ export function useDeliveriesStore() {
     state.deliveries.push(...added)
     persist()
     return { added: added.length, updated }
+  }
+
+  /** Create a delivery from a manually-entered order. */
+  function addOrder(input: { referenceId: string; address: string; items: OrderItem[] }): Delivery {
+    const delivery: Delivery = {
+      id: uid(),
+      row: { Reference: input.referenceId },
+      reference: input.referenceId,
+      address: normalizeAddress(input.address),
+      label: input.referenceId,
+      items: input.items,
+      geocodeState: 'pending',
+      lat: null,
+      lng: null,
+      status: 'pending',
+    }
+    state.deliveries.push(delivery)
+    persist()
+    return delivery
   }
 
   function setStatus(id: string, status: DeliveryStatus): void {
@@ -183,6 +204,7 @@ export function useDeliveriesStore() {
     stats,
     replaceAll,
     append,
+    addOrder,
     mergeByReference,
     setStatus,
     clearAll,
