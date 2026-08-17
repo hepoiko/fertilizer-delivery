@@ -3,6 +3,7 @@ const PREFIX = 'fertilizer-delivery:'
 export const STORAGE_KEYS = {
   settings: 'settings',
   deliveries: 'deliveries',
+  catalog: 'catalog',
 } as const
 
 export function loadJSON<T>(key: string, fallback: T): T {

@@ -7,6 +7,17 @@ export interface LatLng {
   lng: number
 }
 
+export interface Product {
+  id: string
+  productId: string
+  description: string
+}
+
+export interface OrderItem {
+  productId: string
+  quantity: number
+}
+
 export interface Delivery {
   id: string
   /** Full original CSV row keyed by header name */
@@ -21,6 +32,7 @@ export interface Delivery {
   lat: number | null
   lng: number | null
   status: DeliveryStatus
+  items?: OrderItem[]
   geocodeError?: string
 }
 
