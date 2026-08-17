@@ -4,6 +4,7 @@ import DeliveryList from './components/DeliveryList.vue'
 import MapView from './components/MapView.vue'
 import SetupPanel from './components/SetupPanel.vue'
 import SharePanel from './components/SharePanel.vue'
+import ProductCatalog from './components/ProductCatalog.vue'
 import UploadCsv from './components/UploadCsv.vue'
 import { useDeliveriesStore } from './stores/useDeliveriesStore'
 import { useSettingsStore } from './stores/useSettingsStore'
@@ -11,7 +12,7 @@ import { useSettingsStore } from './stores/useSettingsStore'
 const { effectiveApiKey } = useSettingsStore()
 const { stats, clearAll } = useDeliveriesStore()
 
-type Tab = 'map' | 'list' | 'upload' | 'share' | 'settings'
+type Tab = 'map' | 'list' | 'upload' | 'share' | 'products' | 'new-order' | 'settings'
 const tab = ref<Tab>('map')
 const hasKey = computed(() => effectiveApiKey.value.length > 0)
 
@@ -40,6 +41,7 @@ function onClearAll(): void {
           List <span class="count">{{ stats.total }}</span>
         </button>
         <button :class="{ active: tab === 'upload' }" @click="tab = 'upload'">Upload</button>
+        <button :class="{ active: tab === 'products' }" @click="tab = 'products'">Products</button>
         <button :class="{ active: tab === 'share' }" @click="tab = 'share'">Share</button>
         <button :class="{ active: tab === 'settings' }" @click="tab = 'settings'">Settings</button>
       </nav>
@@ -55,6 +57,7 @@ function onClearAll(): void {
         <MapView v-show="tab === 'map'" />
         <DeliveryList v-if="tab === 'list'" />
         <UploadCsv v-if="tab === 'upload'" />
+        <ProductCatalog v-if="tab === 'products'" />
         <SharePanel v-if="tab === 'share'" />
         <SetupPanel v-if="tab === 'settings'" />
       </template>
