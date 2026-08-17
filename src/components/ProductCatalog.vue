@@ -36,6 +36,10 @@ function startEdit(id: string): void {
 
 function onSaveEdit(id: string): void {
   error.value = ''
+  if (!editProductId.value.trim() || !editDescription.value.trim()) {
+    error.value = 'productId and description are required'
+    return
+  }
   if (!updateProduct(id, { productId: editProductId.value, description: editDescription.value })) {
     error.value = 'productId already exists or is invalid'
     return
